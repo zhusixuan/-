@@ -1,0 +1,115 @@
+<div class="content">
+	<div class="content_top">
+		<div class="col-md-3">
+			<div class="one">
+				<div class="cicleDiv">
+					<i class="iconfont icon-yun"></i>
+				</div>
+				<span>99.9%</span>
+			</div>
+			<div class="two">
+				<div class="cicleDiv cicleDiv1">
+					<i class="iconfont icon-user"></i>
+				</div>
+				<span>117K</span>
+			</div>
+			<div class="three">
+				<div class="cicleDiv cicleDiv2">
+					<i class="iconfont icon-18"></i>
+				</div>
+				<span>2,470</span>
+			</div>
+		</div>
+		<div class="col-md-6 contentTop_center">
+			<div class="zhexian"></div>
+		</div>
+		<div class="col-md-3">
+			<div class="contentRight_top"></div>
+			<div class="contentRight_bottom"></div>
+		</div>
+	</div>
+	<div class="content_bottom"></div>
+</div>
+<script type="text/javascript">
+	$(function(){
+		//柱状图
+		$(".contentRight_top").highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: ''
+            },
+            subtitle: {
+                text: ''
+            },
+            xAxis: {
+                categories: [
+                    'Jan',
+                    'Feb'
+                ]
+            },
+            yAxis: {
+                min: 0
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                name: 'Tokyo',
+                data: [49.9, 71.5]
+    
+            }]
+        });
+		//折现
+		 $('.zhexian').highcharts({
+            title: {
+                text: '每个月的平均温度',
+                x: -20 //center
+            },
+            credits:{
+                enabled:false
+            },
+            subtitle: {
+                text: '来源全世界的温度',
+                x: -20
+            },
+            xAxis: {
+                categories: ['Jan', 'Feb']
+            },
+            yAxis: {
+                title: {
+                    text: '温度'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                valueSuffix: '°C'
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'middle',
+                borderWidth: 0
+            },
+            series: [{
+                name: 'Tokyo',
+                data: [10.0, 6.9]
+            }, {
+                name: 'New York',
+                data: [-0.2, 0.8]
+            }]
+        });
+
+
+
+
+	});
+</script>

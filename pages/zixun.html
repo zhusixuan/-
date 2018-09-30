@@ -1,0 +1,243 @@
+<div id="info">
+	<div class="optionDiv">
+		<select name="categoryId">
+			<!-- 从后台获取栏目数据，追加节点 -->
+		</select>
+		<button class="btn btn-success btn-sm addBtn">新 增</button>
+		<button class="btn btn-success btn-sm batchDelBtn">批量删除</button>
+	</div>
+	<table class="table table-bordered text-center">
+		<tr>
+			<td>编号</td>
+			<td>栏目标题</td>
+			<td>所属栏目</td>
+			<td>列表样式</td>
+			<td>作者</td>
+			<td>发布时间</td>
+			<td>阅读次数</td>
+			<td>操作</td>
+		</tr>
+	</table>
+	<div class="modal" id="infoModal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header text-center">
+					<div class="backDiv">
+						<i class="iconfont icon-zuo"></i>
+						<span>返回</span>
+					</div>
+					<div class="modal-title">
+						发布资讯
+					</div>
+				</div>
+				<div class="modal-body">
+					<form class="form">
+						<div class="form-group">
+							<label for="">标题</label>
+							<input type="text" name="infoTitle" class="form-control">
+						</div>
+						<div class="form-group">
+							<label for="">所属栏目</label>
+							<select name="infoCategory" class="form-control">
+								<!-- 获取栏目 -->
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="">列表样式</label>
+							<div class="radio">
+								<label for="style-one">
+									<input type="radio" name="infoList" value="style-one" id="style-one">
+									<img src="./images/style-one.jpg" alt="">
+								</label>
+								<label for="style-two">
+									<input type="radio" name="infoList" value="style-two" id="style-two">
+									<img src="./images/style-two.jpg" alt="">
+								</label>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="">正文</label>
+							<textarea name="infoContent" cols="30" rows="6" class="form-control"></textarea>
+						</div>
+						<div class="form-group hide">
+							<button type='reset'>重置</button>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<span class="messageSpan"></span>
+					<button class="btn btn-success btn-sm saveBtn">发 布</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$(function(){
+		// 全局的栏目id
+		var currentCId = '';
+
+		$('.modal-content').height($(window).height());
+		addCategoryId();
+		// 新增
+		$('.addBtn').click(function(){
+			// 清空表单，清空提示信息，查找栏目，追加节点，设置栏目值，显示模态框
+			$('button[type=reset]').trigger('click');
+			$('.messageSpan').html('');
+			addOption(currentCId);
+		});
+		// 返回
+		$('.backDiv').click(function(){
+			$('#infoModal').hide();
+		});
+		// 保存
+		$('.saveBtn').click(function(){
+			// 获取用户的数据，表单验证，不通过的话，提示用户，如果通过，保存，关闭模态框，刷新数据
+			var infoTitle = $('input[name=infoTitle]').val();
+			var infoCategory = $('select[name=infoCategory]').val();
+			var infoList = $('input[name=infoList]:checked').val();
+			var infoContent = $('textarea[name=infoContent]').val();
+			if(infoTitle&&infoCategory&&infoList&&infoContent){
+				// 保存
+				var obj = {
+					title:infoTitle,
+					liststyle:infoList,
+					categoryId:infoCategory,
+					content:infoContent,
+				};
+				$.post('http://120.78.164.247:8099/manager/article/saveOrUpdateArticle',obj,function(res){
+					console.log(res);
+					if(res.status==200){
+						// alert('保存成功');
+						$('#infoModal').hide();
+						loadData(currentCId);
+					}else{
+						alert('保存失败');
+						console.log(res.message);
+					}
+				});
+			}else{
+				$('.messageSpan').html('请输入完整的信息');
+			}
+		});
+
+
+
+
+		
+		// value就是设置的栏目值
+		function addOption(value){
+			// 查找栏目，追加节点，设置栏目值，显示模态框
+			$('select[name=infoCategory]').empty();
+			$.get('http://120.78.164.247:8099/manager/article/findArticle',function(res){
+				res.data.forEach(function(item){
+					var $option = $('<option value="'+item.id+'">'+item.name+'</option>');
+					$('select[name=infoCategory]').append($option);
+				})
+				// 设置值
+				$('select[name=infoCategory]').val(value);
+				$('#infoModal').show();
+			});
+		}
+
+
+
+		//给name=categoryId绑定change事件，当它发生改变的时候，获取值，拿到categoryId,去查找文章
+		$('select[name=categoryId]').change(function(){
+			var id = $(this).val();
+			currentCId = id;
+			loadData(id);	
+		});
+		//给name=categoryId的select添加option,栏目信息
+		function addCategoryId(){
+			$('select[name=categoryId]').empty();
+			$.get('http://120.78.164.247:8099/manager/category/findAllCategory',function(res){
+				res.data.forEach(function(item){
+					var $option = $('<option value="'+item.id+'">'+item.name+'</option>');
+					$('select[name=categoryId]').append($option);
+				});
+				// 通过categoryId来获取对应的文章信息
+				currentCId = $('select[name=categoryId]').val();
+				loadData($('select[name=categoryId]').val());
+			});
+		}
+		// categoryId 是栏目id,通过categoryId来查找文章信息，追加节点
+		function loadData(categoryId){
+			$('#info table tr:not(:first)').remove();
+			var obj = {
+				page:0,
+				pageSize:1000,
+				categoryId:categoryId,
+			};
+			$.get('http://120.78.164.247:8099/manager/article/findArticle',obj,function(res){
+				console.log(res);
+				if(res.status==200){
+					// 遍历数据，生成节点
+					if(res.data&&res.data.list){
+						res.data.list.forEach(function(item){
+							var $tr = $(`<tr>
+									<td><input type="checkbox" value="`+item.id+`"></td>
+									<td>`+item.title+`</td>
+									<td>`+item.category.name+`</td>
+									<td>`+item.liststyle+`</td>
+									<td>`+(item.author?item.author:'-')+`</td>
+									<td>`+item.publishtime+`</td>
+									<td>`+item.readtimes+`</td>
+									<td>
+										<i class="iconfont icon-edit-1-copy" title="修改"></i>
+										<i class="iconfont icon-shanchu" title="删除"></i>
+									</td>
+								</tr>`);
+							$('#info table').append($tr);
+						});
+					}
+				}else{
+					console.log(res.message);
+					alert('数据加载失败');
+				}
+			})
+		}
+
+		$("#info table").on({
+			click:function(){
+				var id=$(this).closest('tr').find('input[type=checkbox]').val();
+				var obj={
+					id:id,
+				}
+				$.get('http://120.78.164.247:8099/manager/article/deleteArticleById',obj,function(res){
+					if(res.status==200){
+						alert('删除成功');
+						loadData(currentCId);
+					}else{
+						alert('删除失败');
+						console.log(res.message);
+					}
+				})
+
+			}
+		},'i[title=删除]')
+		//批量删除
+		$('.batchDelBtn').click(function(){
+			var ids = $('#info input[type=checkbox]:checked').map(function(index,item){
+				return $(item).val();
+			}).get();
+			// ids:'1,2,3,4'
+			var obj = {
+				ids:ids.toString()
+			};
+			$.post('http://120.78.164.247:8099/manager/article/batchDeleteArticle',obj,function(res){
+				if(res.status==200){
+					alert("批量删除成功");
+					loadData(currentCId);
+				}else{
+					alert("批量删除失败");
+					console.log(res.message);
+				}
+			});
+		})
+
+	});
+</script>
+
+
+

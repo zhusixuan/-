@@ -1,0 +1,189 @@
+<div class="userContent">
+	<div class="caozuo">
+		<button class="btn btn-success userbtn">新增</button>
+	</div>
+	<div class="usercard">
+		<div class="user-header"><img src=""></div>
+		<table class="user-table table-bordertable-condensed table-condensed">
+			<tr class="first">
+				<td class="hidden">id</td>
+				<td class="hidden"></td>
+			</tr>
+			<tr>
+				<td>用户名</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>真实姓名</td>
+				<td></td>
+			</tr>
+
+			<tr>
+				<td>email</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>状态</td>
+				<td></td>
+			</tr>
+		</table>
+	</div>
+	<div class="modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<span><</span><button type="button" class="btn btn-link modallink">返回</button>
+					<text>添加用户</text>
+				</div>
+				<div class="modal-body">					
+				<ul>
+				<li><text>用户名</text></li>
+				<li><input type="text" /></li>
+				<li><text>密码</text></li>
+				<li><input type="password" name="password"/></li>
+				<li><text>重复密码</text></li>
+				<li><input type="password" name="repassword"/></li>
+				<li><text>真实姓名</text></li>
+				<li><input type="text" /></li>
+				<li><text>email</text></li>
+				<li><input type="text" /></li>
+			    </ul>
+				</div>
+				<div class="modal-footer">
+				<button class="btn btn-success usersubmit">确认</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	//加载数据
+	function userdates() {
+		var url = "http://120.78.164.247:8099/manager/user/findAllUser";
+		$.getJSON(url, function(result) {
+			//console.log(result.data);
+			var dates = result.data;
+			dates.forEach(function(item, index) {
+				var dte = item;
+				//追加并渲染数据
+				var clone = $('.usercard:first').clone(true);
+				clone.css('display', 'block')
+				var user = $('.usercard').parent().append(clone);
+				//头像
+				var im = $(clone[0].children[0].children[0]);
+				//console.log('im', im[0].src)
+				//行
+				var trr = $(clone[0].children[1].children[0].children);
+				trr.each(function(index, item) {
+					//头像
+					if(dte.userface){
+						im.attr('src', dte.userface);
+					}else{
+						im.attr('src', './images/user.png');
+					}
+					//用户信息
+					if(item.children[0].innerText == 'id') {
+						item.children[1].innerText = dte.id;
+					};
+					if(item.children[0].innerText == '用户名') {
+						item.children[1].innerText = dte.username;
+					};
+					if(item.children[0].innerText == '真实姓名') {
+						item.children[1].innerText = dte.nickname;
+					};
+					if(item.children[0].innerText == 'email') {
+						item.children[1].innerText = dte.email;
+					};
+				})
+			})
+
+		});
+	}
+	userdates();
+	//删除
+	$('.usercard').each(function(index, item) {
+		//console.log('gvhg',$(item))
+		$(item).click(function() {
+			var ids = this.children[1].children[0].children[0].children[1].innerText;
+			var url = "http://120.78.164.247:8099/manager/user/deleteUserById";
+			$.get(url, {id:ids}, function(result) {
+				if(result.status == 200) {
+					$(".rightDiv-content").load('pages/user.html');
+				}
+			})
+		})
+
+	})
+	$('.userbtn').click(function() {
+		$('.modal,.meng').css({
+			'display': 'block',
+		});
+	})
+	$('.modallink').click(function() {
+		$('.modal,.meng').css({
+			'display': 'none'
+		});
+	})
+	var pPassword=/^[a-zA-Z]\w{5,17}$/;
+	
+	$('.usersubmit').click(function() {
+		var arr = [];
+		var val;
+		var pval;
+		$('input').each(function(index, item) {
+			if(item.value) {
+				if(item.type == 'password') {
+					if(pPassword.test(item.value)) {
+						arr.push(item.value);
+						if(item.name=='password'){
+							val=item.value;
+						}
+						if(item.name=='repassword'){
+							pval=item.value;
+						}
+						if(val!==pval){
+							$(item).css({
+							'border': '1px solid red'
+							})
+							
+						}
+					} else {
+						$(item).css({
+							'border': '1px solid red'
+						})
+					}
+				} else{
+					arr.push(item.value)
+				}
+
+			} else {
+				$(item).css({
+				'border': '1px solid red'
+				})
+			}
+		})
+		//console.log('输入内容为：', arr);
+		if(arr[1]==arr[2]&&arr.length==5){
+			var form={
+				username:arr[0],
+				password:arr[1],
+				nickname:arr[3],
+				email:arr[4],
+				userface:'http://39.108.81.60:8888/group1/M00/00/02/rBApFlut6CiAXiwyAAA-jGizqRM379.jpg'
+			}
+			var url = "http://120.78.164.247:8099/manager/user/saveOrUpdateUser";
+			$.post(url,form,function(result){
+				console.log(result)
+				if(result.status == 200) {
+						$('.modal,.meng').css({
+							'display': 'none',
+						});
+						$(".rightDiv-content").load('pages/user.html');
+						
+					}
+			})		
+		}
+		
+		
+	})
+</script>
